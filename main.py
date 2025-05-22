@@ -78,7 +78,7 @@ def optimize_prompt():
     user_prompt = data.get("prompt", "")
 
     system_prompt = ("Rewrite this prompt to shorter and cheaper to run on an LLM. Preserve meaning and core specifications, but minimize length and cost. Do not add any new information. Do not remove any information. Do not change the meaning of the prompt. Do not change the tone of the prompt. Do not change the style of the prompt. Do not change the intent of the prompt. No punctuation unless absolutely necessary. Remove unncessary bolding, italics, bullet points, hyphens, and other formatting. If you are given a numerical list with spaces, remove the spaces and condense as much as possible while allowing proper separation for analysis. Do not write in full-sentences when avoidable (articles, extraneous pronouns, etc) are not necessary. Do not waste characters on asterisks. Minimize number of return characters")
-    client = OpenAI(api_key=os.getenv("my_key"))
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     response = client.chat.completions.create(
       model = "gpt-3.5-turbo",
       messages=[
