@@ -18,7 +18,10 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 demo_user = os.getenv("auth_user")
 demo_pass = os.getenv("auth_pass")
 
-
+@app.route('/heartbeat')
+def heartbeat():
+    return 'OK', 200
+  
 @app.route("/login", methods=["GET", "POST"])
 def login():
   error = None
@@ -63,6 +66,7 @@ def index():
 
 
 
+# git remote set-url origin git@github.com:noahninja375/Oppy.git
 
 # Calling a request to our bot to optimzie
 @app.route("/optimize", methods=["GET", "POST"])
