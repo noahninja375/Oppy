@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="stylesheet" href="static/style.css">
   <title>OppyBot</title>
+  <!--
   <style>
     body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
     
@@ -31,13 +33,16 @@
     #result { margin-top: 1.5rem; display: none; }
     pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
   </style>
+  -->
 </head>
 <body>
+  <link rel="stylesheet" href="static/style.css">
   <h1>Oppy Prompt Optimizer</h1>
   <progress id="loadingBar" max="100"></progress>
 
   <textarea id="promptInput" placeholder="Paste your prompt here…"></textarea>
   <!-- get rid of this when you start working CSS -->
+  <!--
   <style>
     table { border-collapse: collapse; margin: 1em 0; width: 100%; }
     
@@ -63,6 +68,7 @@
     }
     
   </style>
+  -->
 <br>
 <button onclick="optimize()">Let Oppy Cook 🍳</button>
 
@@ -310,6 +316,7 @@ async function logout() {
 </body>
 
 <footer>
+  <link rel="stylesheet" href="static/style.css">
   <br>
   <h2>Sources for CO2 estimates</h2>
   <p>(Samsi et al.) estimation for joules (J) used per token, as of October 2023. May not accurately reflect the energy expenditure of most recent models. <a href="
