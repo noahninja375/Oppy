@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OppyBot</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    
+    #loadingBar {
+      width: 100%;
+      height: 4px;
+      /* hide it by default */
+      display: none;
+      margin-bottom: 1rem;
+    }
+    /* Optional: make it look nicer in Chrome/Safari */
+    #loadingBar::-webkit-progress-bar {
+      background: #f0f0f0;
+    }
+    #loadingBar::-webkit-progress-value {
+      background: #3b82f6;
+      animation: indeterminate 1s linear infinite;
+    }
+    @keyframes indeterminate {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    textarea { width: 100%; height: 120px; margin-bottom: 1rem; }
+    button { padding: 0.5rem 1rem; }
+    #result { margin-top: 1.5rem; display: none; }
+    pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Oppy Prompt Optimizer</h1>
+  <progress id="loadingBar" max="100"></progress>
+
+  <textarea id="promptInput" placeholder="Paste your prompt here…"></textarea>
+  <!-- get rid of this when you start working CSS -->
+  <style>
+    table { border-collapse: collapse; margin: 1em 0; width: 100%; }
+    
+    th, td { border: 1px solid #ccc; padding: 0.5em; text-align: right; }
+    
+    th { background: #f5f5f5; }
+    
+    caption { font-weight: bold; margin-bottom: 0.5em; }
+    
+    .output pre {
+      margin: 0;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      font-family: Menlo, monospace;
+      white-space: pre-wrap;
+    }
+
+    copy-btn button {
+      display: block;        /* makes margin auto work */
+      margin: 1rem 0 1rem auto; /* top 0, right 0, bottom 1rem, left auto */
+      padding: 0.3rem 1rem;
+      cursor: pointer;
+    }
+    
+  </style>
+<br>
+<button onclick="optimize()">Let Oppy Cook 🍳</button>
+
+<div id="result">
+  <h2 id="currentPrompt">Optimized Prompt</h2>
+  <h4 id="avg">Average tokens saved (0%)</h4>
+  <div class="output">
+    <button id="prevBtn" disabled>◀</button>
+    <pre id="optimizedOutput"></pre>
+    <button id="nextBtn" disabled>▶</button>
+    <br>
+    <br>
+    <button class="copy-btn" onclick="copy()">Copy to Clipboard</button>
+  </div>
+
+  <div id="savings report">
+    <h2>Savings Report per 10K calls</h2>
+
+  <h3> ⚡ Token Savings by Model </h3>
+  <table id="token-savings-table"><thread>
+    <tr><th>Model</th><th>Tokens Saved</th></tr>
+  </thread></table>
+
+  <h3> 💰 Dollar Savings by Model (USD) </h3>
+  <table id="dollar-savings-table"><thread>
+    <tr><th>Model</th><th>Dollars Saved (USD)</th></tr>
+  </thread></table>
+
+  <h3> 🌍 Estimated CO2 Savings by Model (kg) </h3>
+  <p><i>*Estimated based on reported U.S. CO2 emissions per kWh (see sources below)</i></p>
+  <table id="carbon-savings-table"><thread>
+    <tr><th>Model</th><th>Dollars Saved (USD)</th></tr>
+  </thread></table>
+  <!--
+  <p id="stats">
+    
+  </p> -->
+  
+<!--<p id="verdict">
+  
+</p> -->
+  
+</div>
+
+</div>
+
+<script>
+async function copy(){
+  const text = document.getElementById("optimizedOutput").innerText;
+  await navigator.clipboard.writeText(text);
+  alert("Copied to clipboard!")
+}
+
+let optimizedPrompts = [];
+let tokenSavings = {};
+let dollarSavings = {};
+let carbonSavings = {};
+let avgSavings = []
+let currentIndex = 0;
+
+
+async function optimize() {
+  const prompt = document.getElementById("promptInput").value.trim();
+  if (!prompt.trim()) return alert("Please enter a prompt.");
+  
+  const bar = document.getElementById("loadingBar");
+  bar.style.display = "block";
+  
+  const res = await fetch("/optimize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt })
+  });
+
+  const data = await res.json();
+  console.log("API payload:", data);
+  
+  optimizedPrompts = data.optimized_ops;      // your array of 3
+  tokenSavings     = data.token_savings;
+  dollarSavings    = data.dollar_savings;
+  carbonSavings    = data.carbon_savings;
+  avgSavings        = data.avg;
+ 
+  currentIndex     = 0;
+  document.getElementById("result").style.display = "block";
+
+  updateNavButtons();
+  renderTitle();
+  renderOutput();
+  renderTokens();
+  renderDollars();
+  renderCarbon();
+  renderAvg();
+  bar.style.display = "none";
+  
+}
+
+function renderTitle(){
+document.getElementById("currentPrompt").innerText = `Optimized Prompt (${currentIndex + 1}/3)`;
+}
+
+function renderAvg(){
+  document.getElementById("avg").innerText = `Average tokens saved (${avgSavings[currentIndex]}%)`;
+}
+
+function renderOutput() {
+  // Optimized output first
+  document.getElementById("optimizedOutput").innerText =
+    optimizedPrompts[currentIndex] || "[No prompt returned]";
+}
+
+function renderTokens() {
+  const body = document.getElementById("token-savings-table");
+  body.innerHTML = `<tr><th>Model</th><th>Tokens Saved</th></tr>`;
+  for (const [model, saved] of Object.entries(tokenSavings[currentIndex])) {
+    body.insertAdjacentHTML(
+      "beforeend",
+      `<tr><td style="text-align:left">${model}</td><td>${saved}</td></tr>`
+    );
+  }
+}
+
+function renderDollars() {
+  const body = document.getElementById("dollar-savings-table");
+  body.innerHTML = `<tr><th>Model</th><th>USD Saved</th></tr>`;
+  for (const [model, saved] of Object.entries(dollarSavings[currentIndex])) {
+    body.insertAdjacentHTML(
+      "beforeend",
+      `<tr><td style="text-align:left">${model}</td><td>${saved}</td></tr>`
+    );
+  }
+}
+
+function renderCarbon() {
+  const body = document.getElementById("carbon-savings-table");
+  body.innerHTML = `<tr><th>Model</th><th>kg CO₂ Saved</th></tr>`;
+  for (const [model, saved] of Object.entries(carbonSavings[currentIndex])) {
+    body.insertAdjacentHTML(
+      "beforeend",
+      `<tr><td style="text-align:left">${model}</td><td>${saved}</td></tr>`
+    );
+  }
+}
+
+function updateNavButtons() {
+  document.getElementById("prevBtn").disabled = currentIndex === 0;
+  document.getElementById("nextBtn").disabled =
+    currentIndex >= optimizedPrompts.length - 1;
+}
+
+// 6) Wire up ◀ ▶ + Arrow keys
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("prevBtn").addEventListener("click", () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      renderTitle();
+      renderOutput();
+      renderTokens();
+      renderDollars();
+      renderCarbon();
+      renderAvg();
+      updateNavButtons();
+    }
+  });
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    if (currentIndex < optimizedPrompts.length - 1) {
+      currentIndex++;
+      renderTitle();
+      renderOutput();
+      renderTokens();
+      renderDollars();
+      renderCarbon();
+      renderAvg();
+      updateNavButtons();
+    }
+  });
+  window.addEventListener("keydown", e => {
+    if (e.key === "ArrowLeft")  document.getElementById("prevBtn").click();
+    if (e.key === "ArrowRight") document.getElementById("nextBtn").click();
+  });
+});
+
+// Logout 
+async function logout() {
+  
+  try {
+    const res = await fetch('/logout', {
+      method: 'POST',
+      credentials: 'include',               // send your session cookie
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+      // server cleared your session → send you back to login
+      window.location.href = '/login';
+    } else {
+      console.error('Logout failed:', await res.text());
+    }
+  } catch (err) {
+    console.error('Network error on logout:', err);
+  }
+}
+
+  
+    /*
+      // Fill the token savings table
+      const tokenBody = document.getElementById("token-savings-table");
+      tokenBody.innerHTML = "";  // clear existing
+      for (const [model, savedTokens] of Object.entries(data.token_savings[currentIndex])) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="text-align:left">${model}</td>
+          <td>${savedTokens}</td>
+        `;
+        tokenBody.appendChild(tr);
+      }
+
+      // Fill the dollar savings table
+      const dollarBody = document.getElementById("dollar-savings-table");
+      dollarBody.innerHTML = "";  // clear existing
+      for (const [model, savedDollars] of Object.entries(data.dollar_savings[currentIndex])) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="text-align:left">${model}</td>
+          <td>${savedDollars}</td>
+        `;
+        dollarBody.appendChild(tr);
+      }
+
+      // Fill the carbon savings table
+      const carbonBody = document.getElementById("carbon-savings-table");
+      carbonBody.innerHTML = "";  // clear existing
+      for (const [model, savedCarbon] of Object.entries(data.carbon_savings[currentIndex])) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="text-align:left">${model}</td>
+          <td>${savedCarbon}</td>
+        `;
+        carbonBody.appendChild(tr);
+      }
+     */
+      
+    
+  </script>
+  <button onclick=logout()>Log Out</button>
+</body>
+
+<footer>
+  <br>
+  <h2>Sources for CO2 estimates</h2>
+  <p>(Samsi et al.) estimation for joules (J) used per token, as of October 2023. May not accurately reflect the energy expenditure of most recent models. <a href="
+         https://doi.org/10.48550/arXiv.2310.030">https://doi.org/10.48550/arXiv.2310.030</a>
+  </p>
+  <p>Calculated CO2 emissions per kWh in the United States from the U.S. Energy Information Association as of December 2024 <a href="https://www.eia.gov/tools/faqs/faq.php?id=74&t=11">https://www.eia.gov/tools/faqs/faq.php?id=74&t=11</a></p>
+</footer>
+</html>

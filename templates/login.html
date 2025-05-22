@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Oppy Login</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 5rem auto; }
+    input { width: 100%; padding: 0.5rem; margin: 0.5rem 0; }
+    button { padding: 0.5rem 1rem; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Oppy Login</h1>
+  {% if error %}
+    <p class="error">{{ error }}</p>
+  {% endif %}
+  <form method="post">
+    <label>Username</label>
+    <input name="username" type="text" required />
+    <label>Password</label>
+    <input name="password" type="password" required />
+    <button type="submit">Log In</button>
+  </form>
+</body>
+</html>
