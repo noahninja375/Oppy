@@ -178,6 +178,8 @@ async function optimize() {
 function optimizeComplete(){
   const audio = document.getElementById("heal-sound");
   audio.currentTime = 0; 
+  audio.pause();
+  audio.load();
   audio.play();
 }
   
