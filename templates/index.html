@@ -37,6 +37,8 @@
 </head>
 <body>
   <link rel="stylesheet" href="static/style.css">
+  <audio id="heal-sound" href="static/pokemon_center_theme.mp3" preload="auto"></audio>
+  
   <h1>Oppy Prompt Optimizer</h1>
   <p>Paste the prompt you want to shorten here, press the button, and watch the magic happen.</p>
   <progress id="loadingBar" max="100"></progress>
@@ -158,6 +160,7 @@ async function optimize() {
   userCarbon       = data.user_carbon;
  
   currentIndex     = 0;
+  optimizeComplete();
   document.getElementById("result").style.display = "block";
 
   updateNavButtons();
@@ -172,6 +175,12 @@ async function optimize() {
   
 }
 
+function optimizeComplete(){
+  const audio = document.getElementById("heal-sound");
+  audio.currentTime = 0; 
+  audio.play();
+}
+  
 function renderTitle(){
 document.getElementById("currentPrompt").innerText = `Optimized Prompt (${currentIndex + 1}/3)`;
 }
