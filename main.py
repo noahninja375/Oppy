@@ -14,7 +14,7 @@ import tiktoken
 app = Flask(__name__)
 CORS(app)
 app.secret_key = os.getenv("secret_key", "dev‑fallback‑secret") 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("my_key")
 demo_user = os.getenv("auth_user")
 demo_pass = os.getenv("auth_pass")
 
@@ -30,10 +30,10 @@ def login():
       pw   = request.form.get("password")
 
       # DEBUG: print incoming vs expected
-      print("👉 form username:", repr(user))
-      print("👉 form password:", repr(pw))
-      print("👉 demo_user envvar:", repr(demo_user))
-      print("👉 demo_pass envvar:", repr(demo_pass))
+      print("form username:", repr(user))
+      print("form password:", repr(pw))
+      print("demo_user envvar:", repr(demo_user))
+      print("demo_pass envvar:", repr(demo_pass))
 
       if user == demo_user and pw == demo_pass:
           session['logged_in'] = True
@@ -78,7 +78,7 @@ def optimize_prompt():
     user_prompt = data.get("prompt", "")
 
     system_prompt = ("Rewrite this prompt to shorter and cheaper to run on an LLM. Preserve meaning and core specifications, but minimize length and cost. Do not add any new information. Do not remove any information. Do not change the meaning of the prompt. Do not change the tone of the prompt. Do not change the style of the prompt. Do not change the intent of the prompt. No punctuation unless absolutely necessary. Remove unncessary bolding, italics, bullet points, hyphens, and other formatting. If you are given a numerical list with spaces, remove the spaces and condense as much as possible while allowing proper separation for analysis. Do not write in full-sentences when avoidable (articles, extraneous pronouns, etc) are not necessary. Do not waste characters on asterisks. Minimize number of return characters")
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    client = OpenAI(api_key=os.getenv("my_key"))
     response = client.chat.completions.create(
       model = "gpt-3.5-turbo",
       messages=[
@@ -100,6 +100,9 @@ def optimize_prompt():
     dollar_ops = []
     carbon_ops = []
     avg = []
+    user_carbon = 0
+
+    user_carbon = len(tiktoken.encoding_for_model("gpt-3.5-turbo").encode(user_prompt)) * 0.015 * 0.37 * 1.11 * 0.01 
     
     for optimized in optimized_ops:
   
@@ -107,10 +110,10 @@ def optimize_prompt():
       original_len = len(user_prompt.split())
       optimized_len = len(optimized.split())
       
-      gpt2_enc = tiktoken.get_encoding("gpt2")
-      cl100k_enc = tiktoken.get_encoding("cl100k_base")
-      turbo_enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
-      davinci_enc = tiktoken.encoding_for_model("text-davinci-003")
+      gpt2_enc = tiktoken.encoding_for_model("text-davinci-003")
+      cl100k_enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
+      turbo_enc = tiktoken.encoding_for_model("gpt-4")
+      davinci_enc = tiktoken.encoding_for_model("gpt-4o")
 
       a1 = len(gpt2_enc.encode(user_prompt))
       a2 = len(cl100k_enc.encode(user_prompt))
@@ -122,11 +125,13 @@ def optimize_prompt():
       b3 = len(turbo_enc.encode(optimized))
       b4 = len(davinci_enc.encode(optimized))
 
+      user_carbon += len(tiktoken.encoding_for_model("gpt-3.5-turbo").encode(optimized)) * 0.015 * 0.37 * 1.11 * 0.01 
+
       # Percent token savings
-      p1 = ((a1-b1) / b1)
-      p2 = ((a2-b2) / b2)
-      p3 = ((a3-b3) / b3)
-      p4 = ((a4-b4) / b4)
+      p1 = ((a1-b1) / a1) * 100
+      p2 = ((a2-b2) / a2) * 100
+      p3 = ((a3-b3) / a3) * 100
+      p4 = ((a4-b4) / a4) * 100
 
       pAvg = (p1 + p2 + p3 + p4) / 4
       
@@ -172,6 +177,7 @@ def optimize_prompt():
                   "token_savings": token_ops,
                   "dollar_savings": dollar_ops,
                   "carbon_savings": carbon_ops,
+                  "user_carbon": f"{user_carbon:.2f}",
                    "avg": avg})
   except Exception as E:
     print("‼️ Error in /optimize:", E)
