@@ -22,6 +22,53 @@ body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
   100% { transform: translateX(100%); }
 }
 
+:root {
+  --color-primary: #4f46e5;
+  --color-accent: #10b981;
+  --color-bg: #f9fafb;
+  --color-text: #111827;
+}
+
+textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: var(--space-sm);
+  font-size: 1rem;
+}
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(79,70,229,0.2);
+}
+
+body {
+  background: var(--color-bg);
+}
+button {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+}
+button:hover {
+  background: #4338ca;
+}
+
+
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  line-height: 1.5;
+}
+h1, h2, h3, h4, p {
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+}
+
 textarea { width: 100%; height: 120px; margin-bottom: 1rem; }
 
 button { padding: 0.5rem 1rem; }

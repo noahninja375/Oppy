@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <title>OppyBot</title>
   <!--
   <style>
@@ -40,7 +41,9 @@
   <audio id="heal-sound" src="/static/111-pokemon-recovery.mp3" preload="auto"></audio>
   
   <h1>Oppy Prompt Optimizer</h1>
+  <br>
   <p>Paste the prompt you want to shorten here, press the button, and watch the magic happen.</p>
+  <br>
   <progress id="loadingBar" max="100"></progress>
 
   <textarea id="promptInput" placeholder="Paste your prompt here…"></textarea>
@@ -74,15 +77,20 @@
   -->
 <br>
 <button onclick="optimize()">Let Oppy Cook 🍳</button>
+<button onclick=logout()>Log Out</button>
 
 <div id="result">
   <h2 id="currentPrompt">Optimized Prompt</h2>
+  <p>Select the one you want!</p>
   <h4 id="avg">Average tokens saved (0%)</h4>
   
   <div class="output">
+
     <button id="prevBtn" disabled>◀</button>
-    <pre id="optimizedOutput"></pre>
     <button id="nextBtn" disabled>▶</button>
+    <br>
+    <pre id="optimizedOutput"></pre>
+    
     <br>
     <br>
     <button class="copy-btn" onclick="copy()">Copy to Clipboard</button>
@@ -107,6 +115,7 @@
     <tr><th>Model</th><th>Dollars Saved (USD)</th></tr>
   </thread></table>
     <h4 id="carbon">Oppy's CO₂ expenditure for THIS request: 0 kg</h4>
+    <br>
   <!--
   <p id="stats">
     
@@ -152,7 +161,7 @@ async function optimize() {
   const data = await res.json();
   console.log("API payload:", data);
   
-  optimizedPrompts = data.optimized_ops;      // your array of 3
+  optimizedPrompts = data.optimized_ops;      // array of 3
   tokenSavings     = data.token_savings;
   dollarSavings    = data.dollar_savings;
   carbonSavings    = data.carbon_savings;
@@ -192,7 +201,7 @@ function renderUserCarbon(){
 }
 
 function renderAvg(){
-  document.getElementById("avg").innerText = `Average tokens saved (${avgSavings[currentIndex]}%)`;
+  document.getElementById("avg").innerText = `Average token reduction (${avgSavings[currentIndex]}%)`;
 }
 
 function renderOutput() {
@@ -280,11 +289,11 @@ async function logout() {
   try {
     const res = await fetch('/logout', {
       method: 'POST',
-      credentials: 'include',               // send your session cookie
+      credentials: 'include',               // send session cookie
       headers: { 'Content-Type': 'application/json' }
     });
     if (res.ok) {
-      // server cleared your session → send you back to login
+      // server cleared session → send back to login
       window.location.href = '/login';
     } else {
       console.error('Logout failed:', await res.text());
@@ -335,7 +344,8 @@ async function logout() {
       
     
   </script>
-  <button onclick=logout()>Log Out</button>
+
+  
 </body>
 
 <footer>
